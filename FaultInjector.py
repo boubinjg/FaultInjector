@@ -2,7 +2,7 @@
 import dronekit_sitl
 # Import DroneKit-Python
 from dronekit import connect, VehicleMode
-import tkinter as tk
+from Tkinter import *
 
 # Connect to the Vehicle.
 #print("Connecting to vehicle on: %s" % (connection_string,))
@@ -29,15 +29,35 @@ def connectToDrone(address):
   #sitl.stop()
   print("Completed")
 
-def __init__(self, master):	
-  self.master = master
-  self.frame = tk.Frame(self.master)
-  self.button1 = tk.Button(self.frame, text = 'New Window', width = 25, command = self.new_window)
-  self.button1.pack()
-  self.frame.pack()
-
+def work():
+  print("called work")
+  
 def main():
-  root = tk.Tk()
+  root = Tk()
+  toolbar = Frame(root);
+  
+  ipLabel = Label(root, text="IP Address")
+  ipLabel.pack(side=LEFT, padx=2, pady=2)
+  
+  ipBox = Entry(toolbar)
+  ipBox.pack(side=LEFT, padx=2, pady=2)
+  ipBox.delete(0, END)
+  ipBox.insert(0, "127.0.0.1")
+  
+  portBox = Entry(toolbar)
+  portBox.pack(side=LEFT, padx=2, pady=2)
+  portBox.delete(0, END)
+  portBox.insert(0, "14551")  
+
+  b = Button(toolbar, text="Connect", width=6, command=connect)
+  b.pack(side=LEFT, padx=2, pady=2)
+
+  portLabel = Label(root, text="Port")
+  portLabel.pack(side=LEFT, padx=2, pady=2)
+
+
+  toolbar.pack(side=TOP, fill=X)
+  
   root.mainloop()
 
 if __name__ == "__main__":
