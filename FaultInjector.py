@@ -36,25 +36,24 @@ def main():
   root = Tk()
   toolbar = Frame(root);
   
-  ipLabel = Label(root, text="IP Address")
+  ipLabel = Label(toolbar, text="IP Address")
   ipLabel.pack(side=LEFT, padx=2, pady=2)
   
   ipBox = Entry(toolbar)
-  ipBox.pack(side=LEFT, padx=2, pady=2)
   ipBox.delete(0, END)
-  ipBox.insert(0, "127.0.0.1")
-  
-  portBox = Entry(toolbar)
-  portBox.pack(side=LEFT, padx=2, pady=2)
-  portBox.delete(0, END)
-  portBox.insert(0, "14551")  
-
-  b = Button(toolbar, text="Connect", width=6, command=connect)
-  b.pack(side=LEFT, padx=2, pady=2)
-
-  portLabel = Label(root, text="Port")
+  ipBox.insert(0, "127.0.0.1")  
+  ipBox.pack(side=LEFT, padx=2, pady=2)
+ 
+  portLabel = Label(toolbar, text="Port")
   portLabel.pack(side=LEFT, padx=2, pady=2)
 
+  portBox = Entry(toolbar)
+  portBox.delete(0, END)
+  portBox.insert(0, "14551")  
+  portBox.pack(side=LEFT, padx=2, pady=2)
+  
+  b = Button(toolbar, text="Connect", width=6, command=connect)
+  b.pack(side=LEFT, padx=2, pady=2)  
 
   toolbar.pack(side=TOP, fill=X)
   
