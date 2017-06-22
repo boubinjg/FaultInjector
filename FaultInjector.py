@@ -25,9 +25,6 @@ def connectToDrone(ip, port):
   # Shut down simulator
   #sitl.stop()
   print("Completed")
-
-def work():
-  print("called work")
  
 def loadToolbar(root):
   toolbar = Frame(root);
@@ -52,13 +49,25 @@ def loadToolbar(root):
   b.pack(side=LEFT, padx=2, pady=2)  
 
   toolbar.pack(side=TOP, fill=X)
-  
-  root.mainloop()
 
-   
+def loadInfoPane(root):
+  m = PanedWindow(orient=HORIZONTAL)
+  m.pack(fill=BOTH, expand=1)
+
+  top = Label(m, text="Left pane")
+  m.add(top)
+
+  bottom = Label(m, text="Right pane")
+  m.add(bottom)
+
+  mainloop()  
+
 def main():
   root = Tk()
+  root.geometry("800x600")
   loadToolbar(root)
+  loadInfoPane(root)
+  root.mainloop()
 
 if __name__ == "__main__":
   main()
