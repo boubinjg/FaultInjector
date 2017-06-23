@@ -6,11 +6,16 @@ from Tkinter import *
 
 # Connect to the Vehicle.
 #print("Connecting to vehicle on: %s" % (connection_string,))
+updatePanes = None
+vehicle = None
+root = None
 def connectToDrone(ip, port):
   print "Connecting To Drone"
   #vehicle = connect('127.0.0.1:14551', wait_ready=True)
+  global vehicle
   vehicle = connect(ip+':'+port, wait_ready=True)
   # Get some vehicle attributes (state)
+  
   print "Get some vehicle attribute values:"
   print " GPS: %s" % vehicle.gps_0
   print " Battery: %s" % vehicle.battery
@@ -18,14 +23,24 @@ def connectToDrone(ip, port):
   print " Is Armable?: %s" % vehicle.is_armable
   print " System status: %s" % vehicle.system_status.state
   print " Mode: %s" % vehicle.mode.name    # settable
-
+  updateVehicleStatus(vehicle)
   # Close vehicle object before exiting script
-  vehicle.close()
+  #vehicle.close()
 
   # Shut down simulator
   #sitl.stop()
   print("Completed")
- 
+
+def updateVehicleStatus(vehicle):
+  while(1): 
+    updatePanes[0]["text"] = ("Get some vehicle attribute values:\n"+ " GPS: %s" % vehicle.gps_0 +
+    " Battery: %s" % vehicle.battery +
+    " Last Heartbeat: %s" % vehicle.last_heartbeat +
+    " Is Armable?: %s" % vehicle.is_armable +
+    " System status: %s" % vehicle.system_status.state +
+    " Mode: %s" % vehicle.mode.name)   # settable
+    root.update()
+
 def loadToolbar(root):
   toolbar = Frame(root);
   
@@ -54,20 +69,22 @@ def loadInfoPane(root):
   m = PanedWindow(orient=HORIZONTAL)
   m.pack(fill=BOTH, expand=1)
 
-  top = Label(m, text="Left pane")
-  m.add(top)
+  right = Label(m, text="Left pane")
+  m.add(right)
 
-  bottom = Label(m, text="Right pane")
-  m.add(bottom)
-
-  mainloop()  
+  left = Label(m, text="Right pane")
+  m.add(left)
+  print left["text"]
+  return [right, left]
 
 def main():
+  global root
   root = Tk()
   root.geometry("800x600")
   loadToolbar(root)
-  loadInfoPane(root)
+  global updatePanes 
+  updatePanes = loadInfoPane(root)
   root.mainloop()
-
+  
 if __name__ == "__main__":
   main()
