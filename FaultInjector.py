@@ -67,15 +67,17 @@ def loadToolbar(root):
 
 def loadInfoPane(root):
   m = PanedWindow(orient=HORIZONTAL)
-  m.pack(fill=BOTH, expand=1)
-
-  right = Label(m, text="Left pane")
-  m.add(right)
-
-  left = Label(m, text="Right pane")
-  m.add(left)
-  print left["text"]
-  return [right, left]
+  m.pack(fill=BOTH, expand=1) 
+  
+  T = Text(m, height=1, width=40)
+  T.grid_propagate(False)
+  T.config(state=DISABLED) 
+  m.add(T);
+  
+  T2 = PanedWindow(orient=VERTICAL)
+  m.add(T2)
+  
+  return [m]
 
 def main():
   global root
