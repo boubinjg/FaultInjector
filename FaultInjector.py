@@ -4,6 +4,7 @@ import dronekit_sitl
 from dronekit import connect, VehicleMode
 from Tkinter import *
 import time
+import thread
 # Connect to the Vehicle.
 #print("Connecting to vehicle on: %s" % (connection_string,))
 updatePanes = None
@@ -24,7 +25,8 @@ def connectToDrone(ip, port):
   print " Is Armable?: %s" % vehicle.is_armable
   print " System status: %s" % vehicle.system_status.state
   print " Mode: %s" % vehicle.mode.name    # settable
-  updateVehicleStatus(vehicle)
+  
+  thread.start_new_thread(updateVehicleStatus, (vehicle,))
   # Close vehicle object before exiting script
   #vehicle.close()
   
@@ -32,16 +34,19 @@ def connectToDrone(ip, port):
   #sitl.stop()
   print("Completed")
 
+def disconnect():
+  vehicle.close()
+
 def updateVehicleStatus(vehicle):
   while(1): 
-    updateReadoutWindow(updatePanes[0], " GPS: %s" % vehicle.gps_0 +
-    "\nBattery: %s" % vehicle.battery +
+    updateReadoutWindow(updatePanes[0], "%s" % vehicle.gps_0 +
+    "\n%s" % vehicle.battery +
     "\nLast Heartbeat: %s" % vehicle.last_heartbeat +
     "\nIs Armable?: %s" % vehicle.is_armable +
     "\nSystem status: %s" % vehicle.system_status.state +
     "\nMode: %s" % vehicle.mode.name)  
     root.update()
-    sleep(5)
+    time.sleep(1)
 
 def updateReadoutWindow(textWindow, text):
   textWindow.config(state=NORMAL)
@@ -70,7 +75,9 @@ def loadToolbar(root):
   
   b = Button(toolbar, text="Connect", width=6, command=lambda: connectToDrone(ipBox.get(), portBox.get()))
   b.pack(side=LEFT, padx=2, pady=2)  
-
+  
+  d = Button(toolbar, text="Disconnect", width=6, command=disconnect)
+  d.pack(side=LEFT, padx=2, pady=2)
   toolbar.pack(side=TOP, fill=X)
 
 def loadInfoPane(root):
@@ -91,6 +98,13 @@ def loadInfoPane(root):
   
   return [text2, T2]
 
+def wind():
+  print "boy, it's windy"
+
+def createFaultButtons(pane):
+  b = Button(pane, text="Wind", width = 3, command = wind)
+  b.pack()
+
 def main():
   global root
   root = Tk()
@@ -98,7 +112,8 @@ def main():
   loadToolbar(root)
   global updatePanes 
   updatePanes = loadInfoPane(root)
-  updateReadoutWindow(updatePanes[0],"Updated!")
+  updateReadoutWindow(updatePanes[0],"Use the connect button to connect to a drone!")
+  createFaultButtons(updatePanes[1])
   root.mainloop()
   
 if __name__ == "__main__":
