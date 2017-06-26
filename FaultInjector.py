@@ -10,14 +10,16 @@ import thread
 updatePanes = None
 vehicle = None
 root = None
-
+connected = False
 #connects to a drone sitting at ip:port and dispatches a thread to display it's
 #inforamtion to the readout window
 def connectToDrone(ip, port):
-  print "Connecting To Drone"
+  
   global vehicle
   #connect to vehicle at ip:port
   vehicle = connect(ip+':'+port, wait_ready=True)
+  global connected 
+  connected = True
   # create thread to update readout information in real time
   thread.start_new_thread(updateVehicleStatus, (vehicle,))
 
@@ -26,10 +28,12 @@ def disconnect():
   #close vehicle connection
   vehicle.close()
   updateReadoutWindow(updatePanes[0], "Disconneced")
+  global connected
+  connected = False
 
 #continually updates the readout with vehicle information
 def updateVehicleStatus(vehicle):
-  while(1): 
+  while(connected): 
     #update the readout with vehicle information
     updateReadoutWindow(updatePanes[0], "%s" % vehicle.gps_0 +
     "\n%s" % vehicle.battery +
@@ -37,9 +41,11 @@ def updateVehicleStatus(vehicle):
     "\nIs Armable?: %s" % vehicle.is_armable +
     "\nSystem status: %s" % vehicle.system_status.state +
     "\nMode: %s" % vehicle.mode.name)  
+    print(vehicle)
     root.update()
     #wait for 1 second
     time.sleep(1)
+  print "out"
 
 #helper function to write information to the readout
 def updateReadoutWindow(textWindow, text):
@@ -87,22 +93,30 @@ def loadToolbar(root):
 
 #creates a split panned window, with a text box on the left, and fault buttons on the left
 def loadInfoPane(root):
-  m = PanedWindow(orient=HORIZONTAL)
-  m.pack(fill=BOTH, expand=1) 
+  window = PanedWindow(orient=HORIZONTAL)
+  window.pack(fill=BOTH, expand=1) 
   
+  leftSubwindow = PanedWindow(orient=VERTICAL) 
+  #TBH not sure what bottom left will do yet, but it's here
+  bottomLeft = PanedWindow(orient=HORIZONTAL)
+  bottomLeft.pack()
+
   #creates a text box on the left side (this is the readout window)
-  text2 = Text(root, height=20, width=50)
-  text2.pack(side=LEFT)
-  text2.config(state=DISABLED)
+  readout = Text(root, height=20, width=50)
+  readout.pack(side=LEFT)
+  readout.config(state=DISABLED)
   
-  m.add(text2)
+  leftSubwindow.add(readout)
+  leftSubwindow.add(bottomLeft)
+  
+  window.add(leftSubwindow)
 
   #creates a simple paned window on the right side
-  T2 = PanedWindow(orient=VERTICAL)
-  m.add(T2)
+  buttonArray = PanedWindow(orient=VERTICAL)
+  window.add(buttonArray)
   
   #returns panes
-  return [text2, T2]
+  return [readout, buttonArray, bottomLeft]
 
 def wind():
   print "boy, it's windy"
@@ -121,7 +135,7 @@ def main():
   global updatePanes 
   updatePanes = loadInfoPane(root)
   updateReadoutWindow(updatePanes[0],"Use the connect button to connect to a drone!")
-  createFaultButtons(updatePanes[1])
+  createFaultButtons(updatePanes[1]) 
   root.mainloop()
   
 if __name__ == "__main__":
