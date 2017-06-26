@@ -3,12 +3,13 @@ import dronekit_sitl
 # Import DroneKit-Python
 from dronekit import connect, VehicleMode
 from Tkinter import *
-
+import time
 # Connect to the Vehicle.
 #print("Connecting to vehicle on: %s" % (connection_string,))
 updatePanes = None
 vehicle = None
 root = None
+
 def connectToDrone(ip, port):
   print "Connecting To Drone"
   #vehicle = connect('127.0.0.1:14551', wait_ready=True)
@@ -26,20 +27,27 @@ def connectToDrone(ip, port):
   updateVehicleStatus(vehicle)
   # Close vehicle object before exiting script
   #vehicle.close()
-
+  
   # Shut down simulator
   #sitl.stop()
   print("Completed")
 
 def updateVehicleStatus(vehicle):
   while(1): 
-    updatePanes[0]["text"] = ("Get some vehicle attribute values:\n"+ " GPS: %s" % vehicle.gps_0 +
-    " Battery: %s" % vehicle.battery +
-    " Last Heartbeat: %s" % vehicle.last_heartbeat +
-    " Is Armable?: %s" % vehicle.is_armable +
-    " System status: %s" % vehicle.system_status.state +
-    " Mode: %s" % vehicle.mode.name)   # settable
+    updateReadoutWindow(updatePanes[0], " GPS: %s" % vehicle.gps_0 +
+    "\nBattery: %s" % vehicle.battery +
+    "\nLast Heartbeat: %s" % vehicle.last_heartbeat +
+    "\nIs Armable?: %s" % vehicle.is_armable +
+    "\nSystem status: %s" % vehicle.system_status.state +
+    "\nMode: %s" % vehicle.mode.name)  
     root.update()
+    sleep(5)
+
+def updateReadoutWindow(textWindow, text):
+  textWindow.config(state=NORMAL)
+  textWindow.delete('1.0', END)
+  textWindow.insert(END, text)
+  textWindow.config(state=DISABLED)
 
 def loadToolbar(root):
   toolbar = Frame(root);
@@ -69,15 +77,19 @@ def loadInfoPane(root):
   m = PanedWindow(orient=HORIZONTAL)
   m.pack(fill=BOTH, expand=1) 
   
-  T = Text(m, height=1, width=40)
-  T.grid_propagate(False)
-  T.config(state=DISABLED) 
-  m.add(T);
+  text2 = Text(root, height=20, width=50)
+  #scroll = Scrollbar(root, command=text2.yview)
+  #text2.configure(yscrollcommand=scroll.set)
+  #scroll.pack(side=LEFT, fill=Y)
+  text2.pack(side=LEFT)
+  text2.config(state=DISABLED)
   
+  m.add(text2)
+
   T2 = PanedWindow(orient=VERTICAL)
   m.add(T2)
   
-  return [m]
+  return [text2, T2]
 
 def main():
   global root
@@ -86,6 +98,7 @@ def main():
   loadToolbar(root)
   global updatePanes 
   updatePanes = loadInfoPane(root)
+  updateReadoutWindow(updatePanes[0],"Updated!")
   root.mainloop()
   
 if __name__ == "__main__":
