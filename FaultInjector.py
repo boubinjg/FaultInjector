@@ -36,10 +36,6 @@ def connectToSITL(ip, port):
   msg = sitl.recv_match(type='HEARTBEAT', blocking=True)
   print("Heartbeat from APM")
   
-  #mav_param = mavparm.MAVParmDict()
-  #mav_param.mavset(sitl, "SIM_WIND_DIR", float(70))
-  #mav_param.mavset(sitl, "SIM_WIND_SPD", float(1000))
-
 #disconnects the vehicle and cleans the readout
 def disconnect():
   #close vehicle connection
@@ -174,14 +170,42 @@ def loadInfoPane(root):
   #returns panes
   return [readout, buttonArray, bottomLeft]
 
-def wind():
-  print "boy, it's windy"
+def wind(windDIR, windSPD):
+  mav_param = mavparm.MAVParmDict()
+  mav_param.mavset(sitl, "SIM_WIND_DIR", float(windDIR))
+  mav_param.mavset(sitl, "SIM_WIND_SPD", float(windSPD))
 
 #adds faults to the window
 def createFaultButtons(pane):
   #add wind button
-  windB = Button(pane, text="Wind", width = 3, command = wind)
+  windPane = Frame(pane)
+   
+  windSPDFrame = Frame(windPane)
+  mpLabel = Label(windSPDFrame, text = "Set Wind Speed: ")
+  mpLabel.pack(side=TOP, padx=2, pady=2)
+  
+  windSPDBox = Entry(windSPDFrame)
+  windSPDBox.delete(0, END)
+  windSPDBox.insert(0, "0")  
+  windSPDBox.pack(side=TOP, padx=2, pady=2)
+  
+  windSPDFrame.pack(side=TOP)
+
+  windDIRFrame = Frame(windPane)
+ 
+  mpLabel = Label(windDIRFrame, text = "Set Wind Direction in Degrees: ")
+  mpLabel.pack(side=TOP, padx=2, pady=2)
+  
+  windDIRBox = Entry(windDIRFrame)
+  windDIRBox.delete(0, END)
+  windDIRBox.insert(0, "0")  
+  windDIRBox.pack(side=TOP, padx=2, pady=2)
+
+  windDIRFrame.pack(side=TOP)
+
+  windB = Button(windPane, text="Set Wind", width = 8,  command=lambda: wind(windSPDBox.get(), windDIRBox.get()))
   windB.pack()
+  windPane.pack()
 
 def main():
   global root
