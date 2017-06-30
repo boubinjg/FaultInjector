@@ -207,6 +207,12 @@ def createFaultButtons(pane):
   windB.pack()
   windPane.pack()
 
+  gpsPane = Frame(pane)
+  
+
+  #add engine failure button
+   
+
 def main():
   global root
   root = Tk()
