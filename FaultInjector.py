@@ -15,6 +15,9 @@ vehicle = None
 sitl = None
 root = None
 connected = False
+
+#toggle buttons:
+gpsButton = None
 #connects to a drone sitting at ip:port and dispatches a thread to display it's
 #inforamtion to the readout window
 def connectToDrone(ip, port):
@@ -175,6 +178,24 @@ def wind(windDIR, windSPD):
   mav_param.mavset(sitl, "SIM_WIND_DIR", float(windDIR))
   mav_param.mavset(sitl, "SIM_WIND_SPD", float(windSPD))
 
+def gps():
+  global gpsButton
+  if gpsButton.configure('text')[-1] == 'Disable GPS':
+	gpsButton.configure(text='Enable GPS')
+	#use mavlink to disable gps
+  else:
+	gpsButton.configure(text='Disable GPS')
+	#use mavlink to enable gps
+
+def rc():
+  global rcButton
+  if rcButton.configure('text')[-1] == 'Disable GPS':
+	rcButton.configure(text='Enable GPS')
+	#use mavlink to disable gps
+  else:
+	rcButton.configure(text='Disable GPS')
+	#use mavlink to enable gps
+
 #adds faults to the window
 def createFaultButtons(pane):
   #add wind button
@@ -209,7 +230,11 @@ def createFaultButtons(pane):
 
   gpsPane = Frame(pane)
   
-
+  gpsPane = Frame(pane);
+  global gpsButton
+  gpsButton = Button(gpsPane, text = "Disable GPS", width = 8, command=lambda: gps())
+  gpsButton.pack();
+  gpsPane.pack();
   #add engine failure button
    
 
