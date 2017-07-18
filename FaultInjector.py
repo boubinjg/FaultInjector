@@ -174,28 +174,36 @@ def loadInfoPane(root):
   #returns panes
   return [readout, buttonArray, bottomLeft]
 
-def wind(windDIR, windSPD):
+def wind(windSPD, windDIR):
   mav_param = mavparm.MAVParmDict()
-  mav_param.mavset(sitl, "SIM_WIND_DIR", float(windDIR))
-  mav_param.mavset(sitl, "SIM_WIND_SPD", float(windSPD))
+  mav_param.mavset(sitl, "SIM_WIND_DIR", float(windDIR), retries = 100)
+  mav_param.mavset(sitl, "SIM_WIND_SPD", float(windSPD), retries = 100)
 
 def gps():
   global gpsButton
   if gpsButton.configure('text')[-1] == 'Disable GPS':
 	gpsButton.configure(text='Enable GPS')
-	#use mavlink to disable gps
+	mav_param = mavparm.MAVParmDict()
+  	mav_param.mavset(sitl, "SIM_GPS_DISABLE", float(1), retries = 100)
+	#usse mavlink to disable gps
   else:
 	gpsButton.configure(text='Disable GPS')
-	#use mavlink to enable gps
+	mav_param = mavparm.MAVParmDict()
+  	mav_param.mavset(sitl, "SIM_GPS_DISABLE", float(0), retries = 100)
+	#uses mavlink to enable gps
 
 def rc():
   global rcButton
   if rcButton.configure('text')[-1] == 'Disable RC':
 	rcButton.configure(text='Enable RC')
-	#use mavlink to disable gps
+	mav_param = mavparm.MAVParmDict()
+  	mav_param.mavset(sitl, "SIM_RC_FAIL", float(1), retries = 100)
+	#uses mavlink to disable rc
   else:
 	rcButton.configure(text='Disable RC')
-	#use mavlink to enable gps
+	mav_param = mavparm.MAVParmDict()
+  	mav_param.mavset(sitl, "SIM_RC_FAIL", float(0), retries = 100)
+	#uses mavlink to enable rc
 
 #adds faults to the window
 def createFaultButtons(pane):
@@ -240,9 +248,6 @@ def createFaultButtons(pane):
   rcButton = Button(rcPane, text = "Disable RC", width = 8, command=lambda: rc())
   rcButton.pack();
   rcPane.pack();
-
-
-
 
   #add engine failure button
    
