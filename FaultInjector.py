@@ -29,6 +29,11 @@ def connectToDrone(ip, port):
   global connected 
   connected = True
   
+  #initialize globals associated with the vehicle
+  global THR_FS_VAL
+  THR_FS_VAL = vehicle.parameters['THR_FS_VALUE'];
+  
+
   # create thread to update readout information in real time
   thread.start_new_thread(updateVehicleStatus, (vehicle,))
   
@@ -64,7 +69,7 @@ def updateVehicleStatus(vehicle):
     print(vehicle)
     root.update()
     #wait for 1 second
-    time.sleep(1)
+    time.sleep(10)
   print "out"
 
 #helper function to write information to the readout
@@ -104,7 +109,7 @@ def loadToolbar(root):
   #creates port entry box
   MPportBox = Entry(mpToolbar)
   MPportBox.delete(0, END)
-  MPportBox.insert(0, "14550")  
+  MPportBox.insert(0, "14551")  
   MPportBox.pack(side=LEFT, padx=2, pady=2)
   
   #creates connection button
@@ -205,6 +210,19 @@ def rc():
   	mav_param.mavset(sitl, "SIM_RC_FAIL", float(0), retries = 100)
 	#uses mavlink to enable rc
 
+def throttle():
+  mav_param = mavparm.MAVParmDict()
+  global vehicle, thrButton, THR_FS_VAL
+  if thrButton.configure('text')[-1] == 'Activate Throttle Failsafe':
+  	thrButton.configure(text="Deactivate Throttle Failsafe")
+	mav_param.mavset(sitl, "THR_FS_VALUE", float(2000))
+  else:
+	thrButton.configure(text="Activate Throttle Failsafe")
+	mav_param.mavset(sitl, "THR_FS_VALUE", float(THR_FS_VAL))
+	print(THR_FS_VAL)
+	
+  
+
 #adds faults to the window
 def createFaultButtons(pane):
   #add wind button
@@ -249,10 +267,18 @@ def createFaultButtons(pane):
   rcButton.pack();
   rcPane.pack();
 
+  thrPane = Frame(pane);
+  global thrButton
+  thrButton = Button(thrPane, text = "Activate Throttle Failsafe", width = 18, command=lambda: throttle())
+  thrButton.pack();
+  thrPane.pack();
+
+
   #add engine failure button
    
 
 def main():
+
   global root
   root = Tk()
   root.geometry("760x600")
