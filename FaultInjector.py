@@ -221,7 +221,11 @@ def throttle():
 	mav_param.mavset(sitl, "THR_FS_VALUE", float(THR_FS_VAL))
 	print(THR_FS_VAL)
 	
-  
+def battery():
+  print "battery failsafe"
+
+def gcs():
+  print "ground control loss failsafe"
 
 #adds faults to the window
 def createFaultButtons(pane):
@@ -272,8 +276,6 @@ def createFaultButtons(pane):
   thrButton = Button(thrPane, text = "Activate Throttle Failsafe", width = 18, command=lambda: throttle())
   thrButton.pack();
   thrPane.pack();
-
-
   #add engine failure button
    
 
