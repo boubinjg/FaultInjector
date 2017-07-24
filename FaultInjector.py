@@ -277,44 +277,44 @@ def createFaultButtons(pane):
   windDIRFrame.pack(side=TOP)
 
   windB = Button(windPane, text="Set Wind", width = 8,  command=lambda: wind(windSPDBox.get(), windDIRBox.get()))
-  windB.pack()
+  windB.pack(pady=5)
   windPane.pack()
 
   gpsPane = Frame(pane)
   global gpsButton
   gpsButton = Button(gpsPane, text = "Disable GPS", width = 8, command=lambda: gps())
-  gpsButton.pack();
+  gpsButton.pack(pady=5);
   gpsPane.pack();
 
   rcPane = Frame(pane)
   global rcButton
   rcButton = Button(rcPane, text = "Disable RC", width = 8, command=lambda: rc())
-  rcButton.pack();
+  rcButton.pack(pady=5);
   rcPane.pack();
 
   thrPane = Frame(pane)
   global thrButton
   thrButton = Button(thrPane, text = "Activate Throttle Failsafe", width = 20, command=lambda: throttle())
-  thrButton.pack();
+  thrButton.pack(pady=5);
   thrPane.pack();
   #add engine failure button
 
   battPane = Frame(pane)
   global battButton
   battButton = Button(battPane, text = "Activate Battery Failsafe", width = 20, command=lambda: battery())
-  battButton.pack()
+  battButton.pack(pady=5)
   battPane.pack();
    
   GCSPane = Frame(pane)
   global GCSButton
   GCSButton = Button(GCSPane, text = "Disconnect GCS", width = 20, command=lambda: gcs())
-  GCSButton.pack();
+  GCSButton.pack(pady=5);
   GCSPane.pack(); 
 
 def main():
   global root
   root = Tk()
-  root.geometry("760x600")
+  root.geometry("760x420")
   loadToolbar(root)
   global updatePanes 
   updatePanes = loadInfoPane(root)
