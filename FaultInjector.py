@@ -19,6 +19,9 @@ connected = False
 #toggle buttons:
 gpsButton = None
 rcButton = None
+battButton = None
+thrButton = None
+GCSButton = None
 #connects to a drone sitting at ip:port and dispatches a thread to display it's
 #inforamtion to the readout window
 def connectToDrone(ip, port):
@@ -259,25 +262,36 @@ def createFaultButtons(pane):
   windB.pack()
   windPane.pack()
 
-  gpsPane = Frame(pane);
+  gpsPane = Frame(pane)
   global gpsButton
   gpsButton = Button(gpsPane, text = "Disable GPS", width = 8, command=lambda: gps())
   gpsButton.pack();
   gpsPane.pack();
 
-  rcPane = Frame(pane);
+  rcPane = Frame(pane)
   global rcButton
   rcButton = Button(rcPane, text = "Disable RC", width = 8, command=lambda: rc())
   rcButton.pack();
   rcPane.pack();
 
-  thrPane = Frame(pane);
+  thrPane = Frame(pane)
   global thrButton
   thrButton = Button(thrPane, text = "Activate Throttle Failsafe", width = 18, command=lambda: throttle())
   thrButton.pack();
   thrPane.pack();
   #add engine failure button
+
+  battPane = Frame(pane)
+  global battButton
+  battButton = Button(battPane, text = "Activate Battery Failsafe", width = 18, command=lambda: battery())
+  battButton.pack()
+  battPane.pack();
    
+  GCSPane = Frame(pane)
+  global GCSButton
+  GCSButton = Button(GCSPane, text = "Simulate GCS Disconnection", width = 18, command=lambda: gcs())
+  GCSButton.pack();
+  GCSPane.pack(); 
 
 def main():
 
