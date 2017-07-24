@@ -67,17 +67,23 @@ def disconnect():
 #continually updates the readout with vehicle information
 def updateVehicleStatus(vehicle):
   while(connected): 
-    #update the readout with vehicle information
-    updateReadoutWindow(updatePanes[0], "%s" % vehicle.gps_0 +
+    #update the readout with vehicle information  
+    updateText = '';
+    updateText.append("System Status: %s" % vehicle.system_status.state + 
+		      "\nLast Heartbeat: %s" %vehicle.last_heartbeat + 
+		      "\nMode: %s" % vehicle.mode.name +
+		      "\nIs Atmable?: %s" % vehicle.is_armable + "\n")
+
+    updateReadoutWindow(updatePanes[0], updateText)
+    '''updateReadoutWindow(updatePanes[0], "%s" % vehicle.gps_0 +
     "\n%s" % vehicle.battery +
     "\nLast Heartbeat: %s" % vehicle.last_heartbeat +
     "\nIs Armable?: %s" % vehicle.is_armable +
     "\nSystem status: %s" % vehicle.system_status.state +
-    "\nMode: %s" % vehicle.mode.name)  
-    print(vehicle)
+    "\nMode: %s" % vehicle.mode.name)'''
     root.update()
     #wait for 1 second
-    time.sleep(10)
+    time.sleep(1)
   print "out"
 
 #helper function to write information to the readout
