@@ -36,6 +36,8 @@ def connectToDrone(ip, port):
   global THR_FS_VAL
   THR_FS_VAL = vehicle.parameters['THR_FS_VALUE'];
   
+  global FS_BATT_MAH
+  FS_BATT_MAH = vehicle.parameters['FS_BATT_MAH']; 
 
   # create thread to update readout information in real time
   thread.start_new_thread(updateVehicleStatus, (vehicle,))
@@ -222,10 +224,17 @@ def throttle():
   else:
 	thrButton.configure(text="Activate Throttle Failsafe")
 	mav_param.mavset(sitl, "THR_FS_VALUE", float(THR_FS_VAL))
-	print(THR_FS_VAL)
 	
 def battery():
-  print "battery failsafe"
+  mav_param = mavparm.MAVParmDict()
+  global vehicle, battButton, FS_BATT_MAH
+  if thrButton.configure('text')[-1] == 'Activate Battery Failsafe':
+  	thrButton.configure(text="Deactivate Battery Failsafe")
+	mav_param.mavset(sitl, "FS_BATT_MAH", float(4000))
+  else:
+	thrButton.configure(text="Activate Battery Failsafe")
+	mav_param.mavset(sitl, "FS_BATT_MAH", float(FS_BATT_MAH))
+
 
 def gcs():
   print "ground control loss failsafe"
