@@ -34,10 +34,13 @@ def connectToDrone(ip, port):
   
   #initialize globals associated with the vehicle
   global THR_FS_VAL
-  THR_FS_VAL = vehicle.parameters['THR_FS_VALUE'];
+  THR_FS_VAL = vehicle.parameters['THR_FS_VALUE']
   
   global FS_BATT_MAH
-  FS_BATT_MAH = vehicle.parameters['FS_BATT_MAH']; 
+  FS_BATT_MAH = vehicle.parameters['FS_BATT_MAH'] 
+
+  global SYSID_MYGCS
+  SYSID_MYGCS = vehicle.parameters['SYSID_MYGCS']
 
   # create thread to update readout information in real time
   thread.start_new_thread(updateVehicleStatus, (vehicle,))
@@ -228,16 +231,22 @@ def throttle():
 def battery():
   mav_param = mavparm.MAVParmDict()
   global vehicle, battButton, FS_BATT_MAH
-  if thrButton.configure('text')[-1] == 'Activate Battery Failsafe':
-  	thrButton.configure(text="Deactivate Battery Failsafe")
+  if battButton.configure('text')[-1] == 'Activate Battery Failsafe':
+  	battButton.configure(text="Deactivate Battery Failsafe")
 	mav_param.mavset(sitl, "FS_BATT_MAH", float(4000))
   else:
-	thrButton.configure(text="Activate Battery Failsafe")
+	battButton.configure(text="Activate Battery Failsafe")
 	mav_param.mavset(sitl, "FS_BATT_MAH", float(FS_BATT_MAH))
 
-
 def gcs():
-  print "ground control loss failsafe"
+  mav_param = mavparm.MAVParmDict()
+  global vehicle, GCSButton, SYSID_MYGCS
+  if GCSButton.configure('text')[-1] == 'Disconnect GCS':
+  	GCSButton.configure(text="Reconnect GCS")
+	mav_param.mavset(sitl, "SYSID_MYGCS", float(0))
+  else:
+	GCSButton.configure(text="Disconnect GCS")
+	mav_param.mavset(sitl, "SYSID_MYGCS", float(SYSID_MYGCS))
 
 #adds faults to the window
 def createFaultButtons(pane):
@@ -285,25 +294,24 @@ def createFaultButtons(pane):
 
   thrPane = Frame(pane)
   global thrButton
-  thrButton = Button(thrPane, text = "Activate Throttle Failsafe", width = 18, command=lambda: throttle())
+  thrButton = Button(thrPane, text = "Activate Throttle Failsafe", width = 20, command=lambda: throttle())
   thrButton.pack();
   thrPane.pack();
   #add engine failure button
 
   battPane = Frame(pane)
   global battButton
-  battButton = Button(battPane, text = "Activate Battery Failsafe", width = 18, command=lambda: battery())
+  battButton = Button(battPane, text = "Activate Battery Failsafe", width = 20, command=lambda: battery())
   battButton.pack()
   battPane.pack();
    
   GCSPane = Frame(pane)
   global GCSButton
-  GCSButton = Button(GCSPane, text = "Simulate GCS Disconnection", width = 18, command=lambda: gcs())
+  GCSButton = Button(GCSPane, text = "Disconnect GCS", width = 20, command=lambda: gcs())
   GCSButton.pack();
   GCSPane.pack(); 
 
 def main():
-
   global root
   root = Tk()
   root.geometry("760x600")
