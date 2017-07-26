@@ -22,6 +22,9 @@ rcButton = None
 battButton = None
 thrButton = None
 GCSButton = None
+
+gcsfs = bfs = tfs = rfs = gpsfs = "Inactive"
+
 #connects to a drone sitting at ip:port and dispatches a thread to display it's
 #inforamtion to the readout window
 def connectToDrone(ip, port):
@@ -73,6 +76,7 @@ def updateVehicleStatus(vehicle):
 		      "\nLast Heartbeat: %s" %vehicle.last_heartbeat + 
 		      "\nMode: %s" % vehicle.mode.name +
 		      "\nIs Atmable?: %s" % vehicle.is_armable + "\n")
+
     updateText += ("\nBattery Capacity: %s MAH" % vehicle.parameters['BATT_CAPACITY'] +
                    "\nGPS Info: %s" % vehicle.gps_0 + 
 	 	   "\nLattitude: %s " % vehicle.location.global_relative_frame.lat +
@@ -82,24 +86,17 @@ def updateVehicleStatus(vehicle):
 		   "\nWind Speed: %s" % vehicle.parameters['SIM_WIND_SPD'] +
 		   "\nWind Direction: %s\n" % vehicle.parameters['SIM_WIND_DIR'])
     
-    updateText += ("\nGPS Failsafe: " + 
-		   "\nRadio Failsafe: " +
-		   "\nThrottle Failsafe: " +
-		   "\nBattery Failsafe: " +
-		   "\nGCS Failsafe: " )
+    updateText += ("\nGPS Failsafe:      " + gpsfs +
+		   "\nRadio Failsafe:    " + rfs +
+		   "\nThrottle Failsafe: "  + tfs +
+		   "\nBattery Failsafe:  " + bfs +
+		   "\nGCS Failsafe:      " + gcsfs) 
 
 
     updateReadoutWindow(updatePanes[0], updateText)
-    '''updateReadoutWindow(updatePanes[0], "%s" % vehicle.gps_0 +
-    "\n%s" % vehicle.battery +
-    "\nLast Heartbeat: %s" % vehicle.last_heartbeat +
-    "\nIs Armable?: %s" % vehicle.is_armable +
-    "\nSystem status: %s" % vehicle.system_status.state +
-    "\nMode: %s" % vehicle.mode.name)'''
     root.update()
     #wait for 1 second
     time.sleep(1)
-  print "out"
 
 #helper function to write information to the readout
 def updateReadoutWindow(textWindow, text):
@@ -214,60 +211,71 @@ def wind(windSPD, windDIR):
   mav_param.mavset(sitl, "SIM_WIND_SPD", float(windSPD), retries = 100)
 
 def gps():
-  global gpsButton
+  global gpsButton, gpsfs
   if gpsButton.configure('text')[-1] == 'Disable GPS':
 	gpsButton.configure(text='Enable GPS')
 	mav_param = mavparm.MAVParmDict()
   	mav_param.mavset(sitl, "SIM_GPS_DISABLE", float(1), retries = 100)
+	gpsfs = "Active"
 	#usse mavlink to disable gps
   else:
 	gpsButton.configure(text='Disable GPS')
 	mav_param = mavparm.MAVParmDict()
   	mav_param.mavset(sitl, "SIM_GPS_DISABLE", float(0), retries = 100)
+	gpsfs = "Inactive"
 	#uses mavlink to enable gps
 
 def rc():
-  global rcButton
+  global rcButton, rfs
+  mav_param = mavparm.MAVParmDict()
   if rcButton.configure('text')[-1] == 'Disable RC':
-	rcButton.configure(text='Enable RC')
-	mav_param = mavparm.MAVParmDict()
-  	mav_param.mavset(sitl, "SIM_RC_FAIL", float(1), retries = 100)
+	if mav_param.mavset(sitl, "SIM_RC_FAIL", float(1), retries = 100):
+		rfs = "Active"
+		rcButton.configure(text='Enable RC')
+
 	#uses mavlink to disable rc
   else:
 	rcButton.configure(text='Disable RC')
 	mav_param = mavparm.MAVParmDict()
   	mav_param.mavset(sitl, "SIM_RC_FAIL", float(0), retries = 100)
+	rfs = "Inactive"
 	#uses mavlink to enable rc
 
 def throttle():
   mav_param = mavparm.MAVParmDict()
-  global vehicle, thrButton, THR_FS_VAL
+  global vehicle, thrButton, THR_FS_VAL, tfs
   if thrButton.configure('text')[-1] == 'Activate Throttle Failsafe':
-  	thrButton.configure(text="Deactivate Throttle Failsafe")
-	mav_param.mavset(sitl, "THR_FS_VALUE", float(2000))
+  	if mav_param.mavset(sitl, "THR_FS_VALUE", float(2000), retries = 100):
+		tfs = "Active"
+		thrButton.configure(text="Deactivate Throttle Failsafe")
   else:
-	thrButton.configure(text="Activate Throttle Failsafe")
-	mav_param.mavset(sitl, "THR_FS_VALUE", float(THR_FS_VAL))
+	if mav_param.mavset(sitl, "THR_FS_VALUE", float(THR_FS_VAL), retries = 100):
+		thrButton.configure(text="Activate Throttle Failsafe")
+		tfs = "Inactive"
 	
 def battery():
   mav_param = mavparm.MAVParmDict()
-  global vehicle, battButton, FS_BATT_MAH
+  global vehicle, battButton, FS_BATT_MAH, bfs
   if battButton.configure('text')[-1] == 'Activate Battery Failsafe':
-  	battButton.configure(text="Deactivate Battery Failsafe")
-	mav_param.mavset(sitl, "FS_BATT_MAH", float(4000))
+  	if mav_param.mavset(sitl, "FS_BATT_MAH", float(4000), retries = 100):
+		bfs = "Active"
+		battButton.configure(text="Deactivate Battery Failsafe")
   else:
-	battButton.configure(text="Activate Battery Failsafe")
-	mav_param.mavset(sitl, "FS_BATT_MAH", float(FS_BATT_MAH))
+	if mav_param.mavset(sitl, "FS_BATT_MAH", float(FS_BATT_MAH), retries = 100):
+		bfs = "Inactive"
+		battButton.configure(text="Activate Battery Failsafe")
 
 def gcs():
   mav_param = mavparm.MAVParmDict()
-  global vehicle, GCSButton, SYSID_MYGCS
+  global vehicle, GCSButton, SYSID_MYGCS, gcsfs
   if GCSButton.configure('text')[-1] == 'Disconnect GCS':
-  	GCSButton.configure(text="Reconnect GCS")
-	mav_param.mavset(sitl, "SYSID_MYGCS", float(0))
+  	if mav_param.mavset(sitl, "SYSID_MYGCS", float(0), retries = 100):
+		GCSButton.configure(text="Reconnect GCS")
+		gcsfs = "Active"
   else:
-	GCSButton.configure(text="Disconnect GCS")
-	mav_param.mavset(sitl, "SYSID_MYGCS", float(SYSID_MYGCS))
+	if mav_param.mavset(sitl, "SYSID_MYGCS", float(SYSID_MYGCS), retries = 100):
+		GCSButton.configure(text="Disconnect GCS")
+		gcsfs = "Inactive"
 
 #adds faults to the window
 def createFaultButtons(pane):
