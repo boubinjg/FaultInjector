@@ -69,10 +69,25 @@ def updateVehicleStatus(vehicle):
   while(connected): 
     #update the readout with vehicle information  
     updateText = '';
-    updateText.append("System Status: %s" % vehicle.system_status.state + 
+    updateText += ("System Status: %s" % vehicle.system_status.state + 
 		      "\nLast Heartbeat: %s" %vehicle.last_heartbeat + 
 		      "\nMode: %s" % vehicle.mode.name +
 		      "\nIs Atmable?: %s" % vehicle.is_armable + "\n")
+    updateText += ("\nBattery Capacity: %s MAH" % vehicle.parameters['BATT_CAPACITY'] +
+                   "\nGPS Info: %s" % vehicle.gps_0 + 
+	 	   "\nLattitude: %s " % vehicle.location.global_relative_frame.lat +
+		   "\nLongitude: %s" % vehicle.location.global_relative_frame.lon +
+                   "\nAirspeed: %s" % vehicle.velocity +
+                   "\nAltitude: %s" % vehicle.location.global_relative_frame.alt +
+		   "\nWind Speed: %s" % vehicle.parameters['SIM_WIND_SPD'] +
+		   "\nWind Direction: %s\n" % vehicle.parameters['SIM_WIND_DIR'])
+    
+    updateText += ("\nGPS Failsafe: " + 
+		   "\nRadio Failsafe: " +
+		   "\nThrottle Failsafe: " +
+		   "\nBattery Failsafe: " +
+		   "\nGCS Failsafe: " )
+
 
     updateReadoutWindow(updatePanes[0], updateText)
     '''updateReadoutWindow(updatePanes[0], "%s" % vehicle.gps_0 +
