@@ -27,11 +27,18 @@ gcsfs = bfs = tfs = rfs = gpsfs = "Inactive"
 
 #connects to a drone sitting at ip:port and dispatches a thread to display it's
 #inforamtion to the readout window
-def connectToDrone(ip, port):
-  
+def connectToDrone(sip, sport, dkip, dkport):
+  #sitl connection
+  global sitl
+  sitl = mavutil.mavlink_connection('tcp:'+sip+':'+sport, dialect='ardupilotmega', write=True, input=False)
+  print("Waiting for APM heartbeat")
+  msg = sitl.recv_match(type='HEARTBEAT', blocking=False)
+  print("Heartbeat from APM")
+   	
+  #Dronekit connection
   global vehicle
   #connect to vehicle at ip:port
-  vehicle = connect(ip+':'+port, wait_ready=True)
+  vehicle = connect(dkip+':'+dkport, wait_ready=True)
   global connected 
   connected = True
   
@@ -63,7 +70,7 @@ def disconnect():
   updateReadoutWindow(updatePanes[0], "Disconneced")
   global connected
   connected = False
-
+  sitl = none;
 #def disconnectSTIL():
   #todo 
 
@@ -139,7 +146,7 @@ def loadToolbar(root):
   MPportBox.pack(side=LEFT, padx=2, pady=2)
   
   #creates connection button
-  MPcon = Button(mpToolbar, text="Connect", width=6, command=lambda: connectToDrone(MPipBox.get(), MPportBox.get()))
+  MPcon = Button(mpToolbar, text="Connect", width=6, command=lambda: connectToDrone(SipBox.get(), SportBox.get(), MPipBox.get(), MPportBox.get()))
   MPcon.pack(side=LEFT, padx=2, pady=2)  
   #creates disconnect button
   MPdis = Button(mpToolbar, text="Disconnect", width=6, command=disconnect)
@@ -168,12 +175,6 @@ def loadToolbar(root):
   SportBox.pack(side=LEFT, padx=2, pady=2)
   
   #creates connection button
-  Scon = Button(sToolbar, text="Connect", width=6, command=lambda: connectToSITL(SipBox.get(), SportBox.get()))
-  Scon.pack(side=LEFT, padx=2, pady=2)  
-  #creates disconnect button
-  Sdis = Button(sToolbar, text="Disconnect", width=6, command=disconnect)
-  Sdis.pack(side=LEFT, padx=2, pady=2)
-
   mpToolbar.pack(side=TOP, fill=X)
   sToolbar.pack(side=TOP, fill=X)
   toolbar.pack(side=TOP, fill=X)
@@ -212,17 +213,17 @@ def wind(windSPD, windDIR):
 
 def gps():
   global gpsButton, gpsfs
+  mav_param = mavparm.MAVParmDict()
   if gpsButton.configure('text')[-1] == 'Disable GPS':
-	gpsButton.configure(text='Enable GPS')
-	mav_param = mavparm.MAVParmDict()
-  	mav_param.mavset(sitl, "SIM_GPS_DISABLE", float(1), retries = 100)
-	gpsfs = "Active"
+  	if mav_param.mavset(sitl, "SIM_GPS_DISABLE", float(1), retries = 100):
+		gpsButton.configure(text='Enable GPS')
+		gpsfs = "Active"
 	#usse mavlink to disable gps
   else:
-	gpsButton.configure(text='Disable GPS')
-	mav_param = mavparm.MAVParmDict()
-  	mav_param.mavset(sitl, "SIM_GPS_DISABLE", float(0), retries = 100)
-	gpsfs = "Inactive"
+  	if mav_param.mavset(sitl, "SIM_GPS_DISABLE", float(0), retries = 100):
+		gpsfs = "Inactive"
+		gpsButton.configure(text='Disable GPS')
+
 	#uses mavlink to enable gps
 
 def rc():
@@ -232,13 +233,11 @@ def rc():
 	if mav_param.mavset(sitl, "SIM_RC_FAIL", float(1), retries = 100):
 		rfs = "Active"
 		rcButton.configure(text='Enable RC')
-
 	#uses mavlink to disable rc
   else:
-	rcButton.configure(text='Disable RC')
-	mav_param = mavparm.MAVParmDict()
-  	mav_param.mavset(sitl, "SIM_RC_FAIL", float(0), retries = 100)
-	rfs = "Inactive"
+  	if mav_param.mavset(sitl, "SIM_RC_FAIL", float(0), retries = 100):
+		rfs = "Inactive"
+		rcButton.configure(text='Disable RC')
 	#uses mavlink to enable rc
 
 def throttle():
@@ -273,10 +272,10 @@ def gcs():
 		GCSButton.configure(text="Reconnect GCS")
 		gcsfs = "Active"
   else:
-	if mav_param.mavset(sitl, "SYSID_MYGCS", float(SYSID_MYGCS), retries = 100):
-		GCSButton.configure(text="Disconnect GCS")
-		gcsfs = "Inactive"
-
+   	if mav_param.mavset(sitl, "SYSID_MYGCS", float(SYSID_MYGCS), retries = 100):
+  		GCSButton.configure(text="Disconnect GCS")
+  		gcsfs = "Inactive"
+  
 #adds faults to the window
 def createFaultButtons(pane):
   #add wind button
@@ -343,6 +342,7 @@ def createFaultButtons(pane):
 def main():
   global root
   root = Tk()
+  root.title("Fault Injector")
   root.geometry("760x420")
   loadToolbar(root)
   global updatePanes 
