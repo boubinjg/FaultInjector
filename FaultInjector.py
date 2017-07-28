@@ -8,12 +8,16 @@ from curses import ascii
 from pymavlink import mavparm, mavutil
 from pymavlink.dialects.v10 import common as mavlink
 
-# Connect to the Vehicle.
-#print("Connecting to vehicle on: %s" % (connection_string,))
+# globals
+#TK panes which need to be updated
 updatePanes = None
+#dronekit vehicle
 vehicle = None
+#SITL environment variable
 sitl = None
+#TK window root 
 root = None
+#bool which denotes whether you are connected to SITL/Mavproxy or not
 connected = False
 
 #toggle buttons:
@@ -23,6 +27,7 @@ battButton = None
 thrButton = None
 GCSButton = None
 
+#Button Activity
 gcsfs = bfs = tfs = rfs = gpsfs = "Inactive"
 
 #connects to a drone sitting at ip:port and dispatches a thread to display it's
@@ -30,6 +35,7 @@ gcsfs = bfs = tfs = rfs = gpsfs = "Inactive"
 def connectToDrone(sip, sport, dkip, dkport):
   #sitl connection
   global sitl
+  #connect to SITL at ip:port over TCP using an ardupilotmega
   sitl = mavutil.mavlink_connection('tcp:'+sip+':'+sport, dialect='ardupilotmega', write=True, input=False)
   print("Waiting for APM heartbeat")
   msg = sitl.recv_match(type='HEARTBEAT', blocking=False)
@@ -39,29 +45,23 @@ def connectToDrone(sip, sport, dkip, dkport):
   global vehicle
   #connect to vehicle at ip:port
   vehicle = connect(dkip+':'+dkport, wait_ready=True)
+  #set connected bool to True
   global connected 
   connected = True
   
   #initialize globals associated with the vehicle
+  #Throttle PWM fail safe value
   global THR_FS_VAL
   THR_FS_VAL = vehicle.parameters['THR_FS_VALUE']
-  
+  #Battery capacity failsafe value
   global FS_BATT_MAH
   FS_BATT_MAH = vehicle.parameters['FS_BATT_MAH'] 
-
+  #ID of the ground control station
   global SYSID_MYGCS
   SYSID_MYGCS = vehicle.parameters['SYSID_MYGCS']
 
   # create thread to update readout information in real time
   thread.start_new_thread(updateVehicleStatus, (vehicle,))
-  
-def connectToSITL(ip, port):
-  
-  global sitl
-  sitl = mavutil.mavlink_connection('tcp:'+ip+':'+port, dialect='ardupilotmega', write=True, input=False)
-  print("Waiting for APM heartbeat")
-  msg = sitl.recv_match(type='HEARTBEAT', blocking=True)
-  print("Heartbeat from APM")
   
 #disconnects the vehicle and cleans the readout
 def disconnect():
@@ -70,9 +70,8 @@ def disconnect():
   updateReadoutWindow(updatePanes[0], "Disconneced")
   global connected
   connected = False
-  sitl = none;
-#def disconnectSTIL():
-  #todo 
+  #Disconnect SITL
+  sitl = None;
 
 #continually updates the readout with vehicle information
 def updateVehicleStatus(vehicle):
@@ -83,7 +82,7 @@ def updateVehicleStatus(vehicle):
 		      "\nLast Heartbeat: %s" %vehicle.last_heartbeat + 
 		      "\nMode: %s" % vehicle.mode.name +
 		      "\nIs Atmable?: %s" % vehicle.is_armable + "\n")
-
+    #Add battery/location/environment info
     updateText += ("\nBattery Capacity: %s MAH" % vehicle.parameters['BATT_CAPACITY'] +
                    "\nGPS Info: %s" % vehicle.gps_0 + 
 	 	   "\nLattitude: %s " % vehicle.location.global_relative_frame.lat +
@@ -92,15 +91,16 @@ def updateVehicleStatus(vehicle):
                    "\nAltitude: %s" % vehicle.location.global_relative_frame.alt +
 		   "\nWind Speed: %s" % vehicle.parameters['SIM_WIND_SPD'] +
 		   "\nWind Direction: %s\n" % vehicle.parameters['SIM_WIND_DIR'])
-    
+    #add failsafes
     updateText += ("\nGPS Failsafe:      " + gpsfs +
 		   "\nRadio Failsafe:    " + rfs +
 		   "\nThrottle Failsafe: "  + tfs +
 		   "\nBattery Failsafe:  " + bfs +
 		   "\nGCS Failsafe:      " + gcsfs) 
 
-
+    #update the readout
     updateReadoutWindow(updatePanes[0], updateText)
+    #update root
     root.update()
     #wait for 1 second
     time.sleep(1)
@@ -206,74 +206,122 @@ def loadInfoPane(root):
   #returns panes
   return [readout, buttonArray, bottomLeft]
 
+'''The following 6 functions are called when their corresponding Fault Buttons are pressed.
+   Each one communicates with SITL and Dronekit to read and set variables inside the vehicle
+   and simulation'''
 def wind(windSPD, windDIR):
+  #create mavproxy parameter dictionary
   mav_param = mavparm.MAVParmDict()
+  #set mavproxy parameters over sitl
   mav_param.mavset(sitl, "SIM_WIND_DIR", float(windDIR), retries = 100)
   mav_param.mavset(sitl, "SIM_WIND_SPD", float(windSPD), retries = 100)
 
 def gps():
+  #get global button and failsafe readout text
   global gpsButton, gpsfs
+  #create param dictionary
   mav_param = mavparm.MAVParmDict()
+  # if button's text is to Disable GPS
   if gpsButton.configure('text')[-1] == 'Disable GPS':
+        #set SITL to disable gps
   	if mav_param.mavset(sitl, "SIM_GPS_DISABLE", float(1), retries = 100):
+		#change button text
 		gpsButton.configure(text='Enable GPS')
+		#change readout text
 		gpsfs = "Active"
-	#usse mavlink to disable gps
+  #if text is Enable gps
   else:
+	#set SITL to enable gps
   	if mav_param.mavset(sitl, "SIM_GPS_DISABLE", float(0), retries = 100):
+		#change readout text
 		gpsfs = "Inactive"
+                #change button text
 		gpsButton.configure(text='Disable GPS')
 
-	#uses mavlink to enable gps
-
 def rc():
+  #get global button and failsafe readout text
   global rcButton, rfs
+  #create param dictionary
   mav_param = mavparm.MAVParmDict()
+  #if button text says Disable RC
   if rcButton.configure('text')[-1] == 'Disable RC':
+	#Send param to disable RC
 	if mav_param.mavset(sitl, "SIM_RC_FAIL", float(1), retries = 100):
+		#change readout text
 		rfs = "Active"
+		#change button text
 		rcButton.configure(text='Enable RC')
 	#uses mavlink to disable rc
   else:
+	#reactivate RC
   	if mav_param.mavset(sitl, "SIM_RC_FAIL", float(0), retries = 100):
+		#change readout text
 		rfs = "Inactive"
+		#change button text
 		rcButton.configure(text='Disable RC')
 	#uses mavlink to enable rc
 
 def throttle():
+  #create parameter dictionary
   mav_param = mavparm.MAVParmDict()
+  #get global dronekit vehiclea, button, current throttle PWM failsafe value, and failsafe readout text
   global vehicle, thrButton, THR_FS_VAL, tfs
+  #if button says to Activate Throttle Failsafe
   if thrButton.configure('text')[-1] == 'Activate Throttle Failsafe':
+	#set throttle failsafe
   	if mav_param.mavset(sitl, "THR_FS_VALUE", float(2000), retries = 100):
+		#change readout
 		tfs = "Active"
+		#change button text
 		thrButton.configure(text="Deactivate Throttle Failsafe")
   else:
+	#Set Throttle pwn failsafe value back to normal
 	if mav_param.mavset(sitl, "THR_FS_VALUE", float(THR_FS_VAL), retries = 100):
+		#change button text
 		thrButton.configure(text="Activate Throttle Failsafe")
+		#change readout text
 		tfs = "Inactive"
 	
 def battery():
+  #create param dictionary
   mav_param = mavparm.MAVParmDict()
+  #get global dronekit vehicle, button, battert MAH,and failsafe readout text
   global vehicle, battButton, FS_BATT_MAH, bfs
+  #if button text says to activate battery failsafe
   if battButton.configure('text')[-1] == 'Activate Battery Failsafe':
+	#set battery FS value above current capacity
   	if mav_param.mavset(sitl, "FS_BATT_MAH", float(4000), retries = 100):
+		#set readout text
 		bfs = "Active"
+		#set button text
 		battButton.configure(text="Deactivate Battery Failsafe")
   else:
+	#set battery capacity back to normal
 	if mav_param.mavset(sitl, "FS_BATT_MAH", float(FS_BATT_MAH), retries = 100):
+		#set readout
 		bfs = "Inactive"
+		#set button text
 		battButton.configure(text="Activate Battery Failsafe")
 
 def gcs():
+  #create param dict
   mav_param = mavparm.MAVParmDict()
+  #get global dronekit vehicle, button, gcs ID and failsafe readout text
   global vehicle, GCSButton, SYSID_MYGCS, gcsfs
+  #if button says Disconnect GCS
   if GCSButton.configure('text')[-1] == 'Disconnect GCS':
+	#set GCS ID to something unrecognizable to the vehicle
   	if mav_param.mavset(sitl, "SYSID_MYGCS", float(0), retries = 100):
+		#change button text
 		GCSButton.configure(text="Reconnect GCS")
+		#change readout
 		gcsfs = "Active"
   else:
+	#set GCS id back
    	if mav_param.mavset(sitl, "SYSID_MYGCS", float(SYSID_MYGCS), retries = 100):
+		#change button text
   		GCSButton.configure(text="Disconnect GCS")
+		#change readout
   		gcsfs = "Inactive"
   
 #adds faults to the window
