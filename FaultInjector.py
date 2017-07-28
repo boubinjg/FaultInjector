@@ -328,59 +328,59 @@ def gcs():
 def createFaultButtons(pane):
   #add wind button
   windPane = Frame(pane)
-   
+  #create wind speed frame and labels
   windSPDFrame = Frame(windPane)
   mpLabel = Label(windSPDFrame, text = "Set Wind Speed: ")
   mpLabel.pack(side=TOP, padx=2, pady=2)
-  
+  #add wind speed input box
   windSPDBox = Entry(windSPDFrame)
   windSPDBox.delete(0, END)
   windSPDBox.insert(0, "0")  
   windSPDBox.pack(side=TOP, padx=2, pady=2)
   
   windSPDFrame.pack(side=TOP)
-
+  #create wind direction frame and label
   windDIRFrame = Frame(windPane)
  
   mpLabel = Label(windDIRFrame, text = "Set Wind Direction in Degrees: ")
   mpLabel.pack(side=TOP, padx=2, pady=2)
-  
+  #add wind direction input box
   windDIRBox = Entry(windDIRFrame)
   windDIRBox.delete(0, END)
   windDIRBox.insert(0, "0")  
   windDIRBox.pack(side=TOP, padx=2, pady=2)
 
   windDIRFrame.pack(side=TOP)
-
+  #add wind button
   windB = Button(windPane, text="Set Wind", width = 8,  command=lambda: wind(windSPDBox.get(), windDIRBox.get()))
   windB.pack(pady=5)
   windPane.pack()
-
+  #add gps Frame and button
   gpsPane = Frame(pane)
   global gpsButton
   gpsButton = Button(gpsPane, text = "Disable GPS", width = 8, command=lambda: gps())
   gpsButton.pack(pady=5);
   gpsPane.pack();
-
+  #add rc Frame and button
   rcPane = Frame(pane)
   global rcButton
   rcButton = Button(rcPane, text = "Disable RC", width = 8, command=lambda: rc())
   rcButton.pack(pady=5);
   rcPane.pack();
-
+  #add throttle frame and button
   thrPane = Frame(pane)
   global thrButton
   thrButton = Button(thrPane, text = "Activate Throttle Failsafe", width = 20, command=lambda: throttle())
   thrButton.pack(pady=5);
   thrPane.pack();
-  #add engine failure button
-
+  
+  #add battery frame and button
   battPane = Frame(pane)
   global battButton
   battButton = Button(battPane, text = "Activate Battery Failsafe", width = 20, command=lambda: battery())
   battButton.pack(pady=5)
   battPane.pack();
-   
+  #add gps frame and button
   GCSPane = Frame(pane)
   global GCSButton
   GCSButton = Button(GCSPane, text = "Disconnect GCS", width = 20, command=lambda: gcs())
@@ -389,14 +389,22 @@ def createFaultButtons(pane):
 
 def main():
   global root
+  #create root window
   root = Tk()
+  #add window title
   root.title("Fault Injector")
+  #set window size
   root.geometry("760x420")
+  #add the connections toolbar onto the root window
   loadToolbar(root)
   global updatePanes 
+  #create the panes for the readout window and the fault buttons
   updatePanes = loadInfoPane(root)
+  #update the readout window
   updateReadoutWindow(updatePanes[0],"Use the connect button to connect to a drone!")
-  createFaultButtons(updatePanes[1]) 
+  #add fault buttons to root window
+  createFaultButtons(updatePanes[1])
+  #loop 
   root.mainloop()
   
 if __name__ == "__main__":
