@@ -252,7 +252,7 @@ def rc():
 	rfs = "Active"
 	#change button text
 	rcButton.configure(text='Enable RC')
-	#uses mavlink to disable rc
+	
   else:
 	#reactivate RC
   	vehicle.parameters['SIM_GPS_DISABLE'] = float(0)
@@ -260,7 +260,7 @@ def rc():
 	rfs = "Inactive"
 	#change button text
 	rcButton.configure(text='Disable RC')
-	#uses mavlink to enable rc
+	
 
 def throttle():
   #create parameter dictionary
