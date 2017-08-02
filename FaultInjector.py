@@ -13,8 +13,6 @@ from pymavlink.dialects.v10 import common as mavlink
 updatePanes = None
 #dronekit vehicle
 vehicle = None
-#SITL environment variable
-sitl = None
 #TK window root 
 root = None
 #bool which denotes whether you are connected to SITL/Mavproxy or not
@@ -32,14 +30,8 @@ gcsfs = bfs = tfs = rfs = gpsfs = "Inactive"
 
 #connects to a drone sitting at ip:port and dispatches a thread to display it's
 #inforamtion to the readout window
-def connectToDrone(sip, sport, dkip, dkport):
-  #sitl connection
-  global sitl
-  #connect to SITL at ip:port over TCP using an ardupilotmega
-  sitl = mavutil.mavlink_connection('tcp:'+sip+':'+sport, dialect='ardupilotmega', write=True, input=False)
-  print("Waiting for APM heartbeat")
-  msg = sitl.recv_match(type='HEARTBEAT', blocking=False)
-  print("Heartbeat from APM")
+def connectToDrone(dkip, dkport):
+
    
   #Dronekit connection
   global vehicle
@@ -71,8 +63,6 @@ def disconnect():
   updateReadoutWindow(updatePanes[0], "Disconneced")
   global connected
   connected = False
-  #Disconnect SITL
-  sitl = None;
 
 #continually updates the readout with vehicle information
 def updateVehicleStatus(vehicle):
@@ -124,7 +114,7 @@ def loadToolbar(root):
   mpToolbar = Frame(toolbar);
   sToolbar = Frame(toolbar);
 
-  mpLabel = Label(mpToolbar, text = "Connect to Mavproxy: ")
+  mpLabel = Label(mpToolbar, text = "Connect to Drone: ")
   mpLabel.pack(side=LEFT, padx=2, pady=2)
   #creates IP label
   MPipLabel = Label(mpToolbar, text="IP Address")
@@ -147,39 +137,17 @@ def loadToolbar(root):
   MPportBox.pack(side=LEFT, padx=2, pady=2)
   
   #creates connection button
-  MPcon = Button(mpToolbar, text="Connect", width=6, command=lambda: connectToDrone(SipBox.get(), SportBox.get(), MPipBox.get(), MPportBox.get()))
+  MPcon = Button(mpToolbar, text="Connect", width=6, command=lambda: connectToDrone(MPipBox.get(), MPportBox.get()))
   MPcon.pack(side=LEFT, padx=2, pady=2)  
   #creates disconnect button
   MPdis = Button(mpToolbar, text="Disconnect", width=6, command=disconnect)
   MPdis.pack(side=LEFT, padx=2, pady=2)
   
-  sLabel = Label(sToolbar, text="Connect to SITL:         ")
-  sLabel.pack(side=LEFT, padx=2, pady=2)  
-
-  SipLabel = Label(sToolbar, text="IP Address")
-  SipLabel.pack(side=LEFT, padx=2, pady=2)
-  
-  #creates IP entry box
-  SipBox = Entry(sToolbar)
-  SipBox.delete(0, END)
-  SipBox.insert(0, "127.0.0.1")  
-  SipBox.pack(side=LEFT, padx=2, pady=2)
- 
-  #creates port label
-  SportLabel = Label(sToolbar, text="Port")
-  SportLabel.pack(side=LEFT, padx=2, pady=2)
-
-  #creates port entry box
-  SportBox = Entry(sToolbar)
-  SportBox.delete(0, END)
-  SportBox.insert(0, "5763")  
-  SportBox.pack(side=LEFT, padx=2, pady=2)
-  
   #creates connection button
   mpToolbar.pack(side=TOP, fill=X)
   sToolbar.pack(side=TOP, fill=X)
   toolbar.pack(side=TOP, fill=X)
-
+  
 #creates a split panned window, with a text box on the left, and fault buttons on the left
 def loadInfoPane(root):
   window = PanedWindow(orient=HORIZONTAL)
@@ -255,7 +223,7 @@ def rc():
 	
   else:
 	#reactivate RC
-  	vehicle.parameters['SIM_GPS_DISABLE'] = float(0)
+  	vehicle.parameters['SIM_RC_FAIL'] = float(0)
 	#change readout text
 	rfs = "Inactive"
 	#change button text
