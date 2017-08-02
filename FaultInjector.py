@@ -1,5 +1,5 @@
 #!/usr/bin/python
-from dronekit_sitl import SITL
+#from dronekit_sitl import SITL
 # Import DroneKit-Python
 from dronekit import connect, VehicleMode
 from Tkinter import *
@@ -40,10 +40,11 @@ def connectToDrone(sip, sport, dkip, dkport):
   print("Waiting for APM heartbeat")
   msg = sitl.recv_match(type='HEARTBEAT', blocking=False)
   print("Heartbeat from APM")
-   	
+   
   #Dronekit connection
   global vehicle
   #connect to vehicle at ip:port
+  print("Attempting To Connect to Dronekit")
   vehicle = connect(dkip+':'+dkport, wait_ready=True)
   #set connected bool to True
   global connected 
@@ -224,19 +225,19 @@ def gps():
   # if button's text is to Disable GPS
   if gpsButton.configure('text')[-1] == 'Disable GPS':
         #set SITL to disable gps
-  	if mav_param.mavset(sitl, "SIM_GPS_DISABLE", float(1), retries = 100):
-		#change button text
-		gpsButton.configure(text='Enable GPS')
-		#change readout text
-		gpsfs = "Active"
+        vehicle.parameters['SIM_GPS_DISABLE'] = float(1)
+	#change button text
+	gpsButton.configure(text='Enable GPS')
+	#change readout text
+	gpsfs = "Active"
   #if text is Enable gps
   else:
 	#set SITL to enable gps
-  	if mav_param.mavset(sitl, "SIM_GPS_DISABLE", float(0), retries = 100):
-		#change readout text
-		gpsfs = "Inactive"
-                #change button text
-		gpsButton.configure(text='Disable GPS')
+  	vehicle.parameters['SIM_GPS_DISABLE'] = float(0) 
+	#change readout text
+	gpsfs = "Inactive"
+        #change button text
+	gpsButton.configure(text='Disable GPS')
 
 def rc():
   #get global button and failsafe readout text
