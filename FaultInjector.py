@@ -291,18 +291,18 @@ def battery():
   #if button text says to activate battery failsafe
   if battButton.configure('text')[-1] == 'Activate Battery Failsafe':
 	#set battery FS value above current capacity
-  	if mav_param.mavset(sitl, "FS_BATT_MAH", float(4000), retries = 100):
-		#set readout text
-		bfs = "Active"
-		#set button text
-		battButton.configure(text="Deactivate Battery Failsafe")
+  	vehicle.parameters['FS_BATT_MAH'] = float(4000)
+	#set readout text
+	bfs = "Active"
+	#set button text
+	battButton.configure(text="Deactivate Battery Failsafe")
   else:
 	#set battery capacity back to normal
-	if mav_param.mavset(sitl, "FS_BATT_MAH", float(FS_BATT_MAH), retries = 100):
-		#set readout
-		bfs = "Inactive"
-		#set button text
-		battButton.configure(text="Activate Battery Failsafe")
+	vehicle.parameters['FS_BATT_MAH'] = float(FS_BATT_MAH)
+	#set readout
+	bfs = "Inactive"
+	#set button text
+	battButton.configure(text="Activate Battery Failsafe")
 
 def gcs():
   #create param dict
@@ -312,18 +312,18 @@ def gcs():
   #if button says Disconnect GCS
   if GCSButton.configure('text')[-1] == 'Disconnect GCS':
 	#set GCS ID to something unrecognizable to the vehicle
-  	if mav_param.mavset(sitl, "SYSID_MYGCS", float(0), retries = 100):
-		#change button text
-		GCSButton.configure(text="Reconnect GCS")
-		#change readout
-		gcsfs = "Active"
+        vehicle.parameters['SYSID_MYGCS'] = float(0)
+	#change button text
+	GCSButton.configure(text="Reconnect GCS")
+	#change readout
+	gcsfs = "Active"
   else:
 	#set GCS id back
-   	if mav_param.mavset(sitl, "SYSID_MYGCS", float(SYSID_MYGCS), retries = 100):
-		#change button text
-  		GCSButton.configure(text="Disconnect GCS")
-		#change readout
-  		gcsfs = "Inactive"
+   	vehicle.parameters['SYSID_MYGCS'] = float(SYSID_MYGCS)	
+        #change button text
+  	GCSButton.configure(text="Disconnect GCS")
+	#change readout
+  	gcsfs = "Inactive"
   
 #adds faults to the window
 def createFaultButtons(pane):
