@@ -214,8 +214,8 @@ def wind(windSPD, windDIR):
   #create mavproxy parameter dictionary
   mav_param = mavparm.MAVParmDict()
   #set mavproxy parameters over sitl
-  mav_param.mavset(sitl, "SIM_WIND_DIR", float(windDIR), retries = 100)
-  mav_param.mavset(sitl, "SIM_WIND_SPD", float(windSPD), retries = 100)
+  vehicle.parameters['SIM_WIND_DIR'] = float(windDIR)
+  vehicle.parameters['SIM_WIND_SPD'] = float(windSPD)
 
 def gps():
   #get global button and failsafe readout text
@@ -247,19 +247,19 @@ def rc():
   #if button text says Disable RC
   if rcButton.configure('text')[-1] == 'Disable RC':
 	#Send param to disable RC
-	if mav_param.mavset(sitl, "SIM_RC_FAIL", float(1), retries = 100):
-		#change readout text
-		rfs = "Active"
-		#change button text
-		rcButton.configure(text='Enable RC')
+	vehicle.parameters['SIM_RC_FAIL'] = float(1)
+	#change readout text
+	rfs = "Active"
+	#change button text
+	rcButton.configure(text='Enable RC')
 	#uses mavlink to disable rc
   else:
 	#reactivate RC
-  	if mav_param.mavset(sitl, "SIM_RC_FAIL", float(0), retries = 100):
-		#change readout text
-		rfs = "Inactive"
-		#change button text
-		rcButton.configure(text='Disable RC')
+  	vehicle.parameters['SIM_GPS_DISABLE'] = float(0)
+	#change readout text
+	rfs = "Inactive"
+	#change button text
+	rcButton.configure(text='Disable RC')
 	#uses mavlink to enable rc
 
 def throttle():
@@ -270,18 +270,18 @@ def throttle():
   #if button says to Activate Throttle Failsafe
   if thrButton.configure('text')[-1] == 'Activate Throttle Failsafe':
 	#set throttle failsafe
-  	if mav_param.mavset(sitl, "THR_FS_VALUE", float(2000), retries = 100):
-		#change readout
-		tfs = "Active"
-		#change button text
-		thrButton.configure(text="Deactivate Throttle Failsafe")
+        vehicle.parameters['THR_FS_VALUE'] = float(2000)
+	#change readout
+	tfs = "Active"
+	#change button text
+	thrButton.configure(text="Deactivate Throttle Failsafe")
   else:
 	#Set Throttle pwn failsafe value back to normal
-	if mav_param.mavset(sitl, "THR_FS_VALUE", float(THR_FS_VAL), retries = 100):
-		#change button text
-		thrButton.configure(text="Activate Throttle Failsafe")
-		#change readout text
-		tfs = "Inactive"
+	vehicle.parameters['THR_FS_VALUE'] = float(THR_FS_VAL)
+	#change button text
+	thrButton.configure(text="Activate Throttle Failsafe")
+	#change readout text
+	tfs = "Inactive"
 	
 def battery():
   #create param dictionary
